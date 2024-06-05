@@ -13,6 +13,8 @@ thread = None
 thread_lock = Lock()
 sensor_enabled = False
 sensor_thread = None
+csv_file = None
+csv_writer = None
 
 # Define MySQL connection parameters
 myhost = 'localhost'
@@ -21,7 +23,7 @@ mydb = 'zadanie'
 mypasswd = 'password'
 
 def background_thread():
-    global sensor_enabled
+    global sensor_enabled, csv_writer
     # Define DHT sensor type and pin
     sensor = Adafruit_DHT.DHT11
     pin = 21  # Adjust pin number according to your setup
@@ -43,7 +45,8 @@ def background_thread():
                 db.commit()
                 cursor.close()
 
-                save_to_csv({'time': datetime.now(), 'temperature': temperature, 'humidity': humidity})
+                if csv_writer:
+                    save_to_csv({'time': datetime.now(), 'temperature': temperature, 'humidity': humidity})
 
         socketio.sleep(2)
 
@@ -84,19 +87,9 @@ def get_data():
     return jsonify(data)
 
 def save_to_csv(data):
-    current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f'sensor_data_{current_datetime}.csv'
-
-    with open(filename, 'a', newline='') as csvfile:
-        fieldnames = ['time', 'temperature', 'humidity']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
-        # Write headers if the file is empty
-        if csvfile.tell() == 0:
-            writer.writeheader()
-        
-        # Write the data to the CSV file
-        writer.writerow(data)
+    global csv_writer
+    if csv_writer:
+        csv_writer.writerow(data)
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
@@ -108,16 +101,24 @@ def test_connect():
 
 @socketio.on('start_sensor', namespace='/test')
 def start_sensor():
-    global sensor_enabled, sensor_thread
+    global sensor_enabled, sensor_thread, csv_file, csv_writer
     if not sensor_enabled:
         sensor_enabled = True
         sensor_thread = socketio.start_background_task(target=background_thread)
+        current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
+        csv_file = f'sensor_data_{current_datetime}.csv'
+        csvfile = open(csv_file, 'a', newline='')
+        fieldnames = ['time', 'temperature', 'humidity']
+        csv_writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        csv_writer.writeheader()
 
 @socketio.on('stop_sensor', namespace='/test')
 def stop_sensor():
-    global sensor_enabled, sensor_thread
+    global sensor_enabled, sensor_thread, csv_writer
     sensor_enabled = False
     sensor_thread = None
+    if csv_writer:
+        csv_writer = None
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
