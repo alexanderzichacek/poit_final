@@ -52,8 +52,11 @@
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
   <script>
-    var data = [];
-    var layout = { title: 'Temperature and Humidity', xaxis: { title: 'Time' }, yaxis: { title: 'Value' } };
+    var layout = {
+      title: 'Temperature and Humidity',
+      xaxis: { title: 'Time' },
+      yaxis: { title: 'Value' }
+    };
     var config = { responsive: true };
 
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/test');
@@ -64,8 +67,10 @@
 
     socket.on('sensor_data', function (sensorData) {
       var timestamp = new Date().getTime();
-      data.push({ x: timestamp, y: sensorData.temperature, type: 'scatter', mode: 'lines', name: 'Temperature' });
-      data.push({ x: timestamp, y: sensorData.humidity, type: 'scatter', mode: 'lines', name: 'Humidity' });
+      var data = [
+        { x: [timestamp], y: [sensorData.temperature], type: 'scatter', mode: 'lines', name: 'Temperature' },
+        { x: [timestamp], y: [sensorData.humidity], type: 'scatter', mode: 'lines', name: 'Humidity' }
+      ];
       Plotly.newPlot('graph', data, layout, config);
     });
 
