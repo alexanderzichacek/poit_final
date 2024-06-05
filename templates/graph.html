@@ -42,8 +42,9 @@
     </div>
   </nav>
   <div class="container mt-4">
-    <h1>Temperature and Humidity Graph</h1>
-    <div id="graph"></div>
+    <h1>Temperature and Humidity Graphs</h1>
+    <div id="temperatureGraph"></div>
+    <div id="humidityGraph"></div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -53,11 +54,13 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
   <script>
     var layout = {
-      title: 'Temperature and Humidity',
       xaxis: { title: 'Time' },
-      yaxis: { title: 'Value' }
+      yaxis: { title: 'Temperature (°C)' }
     };
     var config = { responsive: true };
+
+    var temperatureData = [];
+    var humidityData = [];
 
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/test');
 
@@ -66,12 +69,13 @@
     });
 
     socket.on('sensor_data', function (sensorData) {
-      var timestamp = new Date().getTime();
-      var data = [
-        { x: [timestamp], y: [sensorData.temperature], type: 'scatter', mode: 'lines', name: 'Temperature' },
-        { x: [timestamp], y: [sensorData.humidity], type: 'scatter', mode: 'lines', name: 'Humidity' }
-      ];
-      Plotly.newPlot('graph', data, layout, config);
+      var timestamp = new Date().toLocaleTimeString();
+
+      temperatureData.push({ x: timestamp, y: sensorData.temperature });
+      humidityData.push({ x: timestamp, y: sensorData.humidity });
+
+      updateGraph('temperatureGraph', temperatureData, 'Temperature (°C)');
+      updateGraph('humidityGraph', humidityData, 'Humidity (%)');
     });
 
     socket.on('disconnect', function () {
@@ -85,6 +89,23 @@
     $('#stopButton').click(function () {
       socket.emit('stop_sensor');
     });
+
+    function updateGraph (graphId, data, yAxisTitle) {
+      var graphDiv = document.getElementById(graphId);
+      var trace = { x: [], y: [], type: 'scatter', mode: 'lines', name: yAxisTitle };
+
+      for (var i = 0; i < data.length; i++) {
+        trace.x.push(data[i].x);
+        trace.y.push(data[i].y);
+      }
+
+      var layout = {
+        xaxis: { title: 'Time' },
+        yaxis: { title: yAxisTitle }
+      };
+
+      Plotly.newPlot(graphDiv, [trace], layout, config);
+    }
   </script>
 </body>
 
