@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Temperature and Humidity Logger</title>
+  <script type="text/javascript"
+    src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+  <script type="text/javascript"
+    src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+  <script type="text/javascript"
+    charset="utf-8">
+      $(document).ready(function () {
+        namespace = '/test';
+        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+        socket.on('connect', function () {
+          console.log('Connected to server');
+        });
+
+        socket.on('sensor_data', function (data) {
+          $('#log').append('Temperature: ' + data.temperature + '°C, Humidity: ' + data.humidity + '%<br>');
+        });
+
+        socket.on('disconnect', function () {
+          console.log('Disconnected from server');
+        });
+      });
+    </script>
+</head>
+
+<body>
+  <h1>Temperature and Humidity Logger</h1>
+  <h2>Received Data:</h2>
+  <div id="log"></div>
+</body>
+
+</html>
