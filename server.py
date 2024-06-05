@@ -1,5 +1,5 @@
 from threading import Lock
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO
 
 # Import Adafruit DHT library
