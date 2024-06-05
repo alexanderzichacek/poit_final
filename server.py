@@ -1,11 +1,10 @@
 from threading import Lock
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO
-
-# Import Adafruit DHT library
 import Adafruit_DHT
 import MySQLdb
 from datetime import datetime
+import csv
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -43,6 +42,9 @@ def background_thread():
                                (datetime.now(), temperature, humidity))
                 db.commit()
                 cursor.close()
+
+                save_to_csv({'time': datetime.now(), 'temperature': temperature, 'humidity': humidity})
+
         socketio.sleep(2)
 
 @app.route('/')
@@ -80,6 +82,28 @@ def get_data():
     # Return the rows as JSON
     data = [{'id': row[0], 'time': row[1], 'temperature': row[2], 'humidity': row[3]} for row in rows]
     return jsonify(data)
+
+def save_to_csv(data):
+    current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
+    index = 1
+    filename = f'sensor_data_{current_datetime}.csv'
+
+    # Check if the file already exists
+    while os.path.exists(filename):
+        # If it does, increment index and try a new filename
+        filename = f'sensor_data_{current_datetime}_{index}.csv'
+        index += 1
+
+    with open(filename, 'a', newline='') as csvfile:
+        fieldnames = ['time', 'temperature', 'humidity']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        # Write headers if the file is empty
+        if os.stat(filename).st_size == 0:
+            writer.writeheader()
+        
+        # Write the data to the CSV file
+        writer.writerow(data)
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
