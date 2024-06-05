@@ -39,6 +39,10 @@ def numeric():
 def graph():
     return render_template('graph.html')
 
+@app.route('/gauge')
+def gauge():
+    return render_template('gauge.html')
+
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>Temperature and Humidity Gauges</title>
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand"
+      href="#">Sensor Gauges</a>
+    <button class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse"
+      id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link"
+            href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"
+            href="/graph">Graph</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link"
+            href="/gauge">Gauges <span class="sr-only">(current)</span></a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <div class="container mt-4">
+    <h1>Temperature and Humidity Gauges</h1>
+    <div id="temperatureGauge"></div>
+    <div id="humidityGauge"></div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/raphael/raphael.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/dist/justgage.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+  <script>
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/test');
+
+    socket.on('connect', function () {
+      console.log('Connected to server');
+    });
+
+    socket.on('sensor_data', function (sensorData) {
+      updateGauge('temperatureGauge', sensorData.temperature, 'Temperature (°C)', -10, 50);
+      updateGauge('humidityGauge', sensorData.humidity, 'Humidity (%)', 0, 100);
+    });
+
+    socket.on('disconnect', function () {
+      console.log('Disconnected from server');
+    });
+
+    function updateGauge (gaugeId, value, label, min, max) {
+      var gaugeDiv = document.getElementById(gaugeId);
+
+      var gauge = new JustGage({
+        id: gaugeDiv,
+        value: value,
+        min: min,
+        max: max,
+        title: label,
+        label: label,
+        gaugeWidthScale: 0.6,
+        counter: true,
+        relativeGaugeSize: true
+      });
+    }
+  </script>
+</body>
+
+</html>
