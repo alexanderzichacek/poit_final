@@ -4,6 +4,8 @@ from flask_socketio import SocketIO
 
 # Import Adafruit DHT library
 import Adafruit_DHT
+import MySQLdb
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -13,18 +15,34 @@ thread_lock = Lock()
 sensor_enabled = False
 sensor_thread = None
 
+# Define MySQL connection parameters
+myhost = 'localhost'
+myuser = 'root'
+mydb = 'zadanie'
+mypasswd = ''
+
 def background_thread():
     global sensor_enabled
     # Define DHT sensor type and pin
     sensor = Adafruit_DHT.DHT11
     pin = 21  # Adjust pin number according to your setup
-
+    
+    # Connect to MySQL database
+    db = MySQLdb.connect(host=myhost, user=myuser, passwd=mypasswd, db=mydb)
+    
     while True:
         if sensor_enabled:
             humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
             if humidity is not None and temperature is not None:
                 # If data is valid, emit it to clients
                 socketio.emit('sensor_data', {'temperature': temperature, 'humidity': humidity}, namespace='/test')
+                
+                # Insert data into MySQL database
+                cursor = db.cursor()
+                cursor.execute("INSERT INTO sensor_data (time, temperature, humidity) VALUES (%s, %s, %s)", 
+                               (datetime.now(), temperature, humidity))
+                db.commit()
+                cursor.close()
         socketio.sleep(2)
 
 @app.route('/')
