@@ -61,6 +61,10 @@ def graph():
 def gauge():
     return render_template('gauge.html')
 
+@app.route('/database')
+def database():
+    return render_template('database.html')
+
 @app.route('/get_data')
 def get_data():
     # Connect to MySQL database
