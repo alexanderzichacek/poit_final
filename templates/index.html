@@ -6,10 +6,23 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0">
   <title>Open Connection</title>
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .centered-button {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
 </head>
 
 <body>
-  <button id="openButton">Open Connection</button>
+  <div class="container centered-button">
+    <button id="openButton"
+      class="btn btn-primary btn-lg">Open Connection</button>
+  </div>
 
   <!-- Include SocketIO JS library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
