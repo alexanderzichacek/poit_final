@@ -61,6 +61,22 @@ def graph():
 def gauge():
     return render_template('gauge.html')
 
+@app.route('/get_data')
+def get_data():
+    # Connect to MySQL database
+    db = MySQLdb.connect(host=myhost, user=myuser, passwd=mypasswd, db=mydb)
+    
+    # Fetch last 50 rows from sensor_data table
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM sensor_data ORDER BY time DESC LIMIT 50")
+    rows = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    # Return the rows as JSON
+    data = [{'id': row[0], 'time': row[1], 'temperature': row[2], 'humidity': row[3]} for row in rows]
+    return jsonify(data)
+
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread
