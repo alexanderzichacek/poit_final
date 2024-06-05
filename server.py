@@ -16,7 +16,6 @@ sensor_thread = None
 csv_file = None
 csv_writer = None
 
-# Define MySQL connection parameters
 myhost = 'localhost'
 myuser = 'zichacek'
 mydb = 'zadanie'
@@ -24,21 +23,17 @@ mypasswd = 'password'
 
 def background_thread():
     global sensor_enabled, csv_writer
-    # Define DHT sensor type and pin
     sensor = Adafruit_DHT.DHT11
-    pin = 21  # Adjust pin number according to your setup
+    pin = 21
     
-    # Connect to MySQL database
     db = MySQLdb.connect(host=myhost, user=myuser, passwd=mypasswd, db=mydb)
     
     while True:
         if sensor_enabled:
             humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
             if humidity is not None and temperature is not None:
-                # If data is valid, emit it to clients
                 socketio.emit('sensor_data', {'temperature': temperature, 'humidity': humidity}, namespace='/test')
                 
-                # Insert data into MySQL database
                 cursor = db.cursor()
                 cursor.execute("INSERT INTO sensor_data (time, temperature, humidity) VALUES (%s, %s, %s)", 
                                (datetime.now(), temperature, humidity))
@@ -72,17 +67,14 @@ def database():
 
 @app.route('/get_data')
 def get_data():
-    # Connect to MySQL database
     db = MySQLdb.connect(host=myhost, user=myuser, passwd=mypasswd, db=mydb)
     
-    # Fetch last 50 rows from sensor_data table
     cursor = db.cursor()
     cursor.execute("SELECT * FROM sensor_data ORDER BY time DESC LIMIT 50")
     rows = cursor.fetchall()
     cursor.close()
     db.close()
 
-    # Return the rows as JSON
     data = [{'id': row[0], 'time': row[1], 'temperature': row[2], 'humidity': row[3]} for row in rows]
     return jsonify(data)
 
@@ -96,7 +88,6 @@ def test_connect():
     global thread
     with thread_lock:
         if thread is None:
-            # Start background thread to read sensor data
             thread = socketio.start_background_task(target=background_thread)
 
 @socketio.on('start_sensor', namespace='/test')
