@@ -13,7 +13,7 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand"
-      href="/numeric">Sensor Gauges</a>
+      href="#">Sensor Gauges</a>
     <button class="navbar-toggler"
       type="button"
       data-toggle="collapse"
@@ -28,7 +28,7 @@
       <ul class="navbar-nav">
         <li class="nav-item">
           <a class="nav-link"
-            href="/numeric">Home</a>
+            href="/">Home</a>
         </li>
         <li class="nav-item">
           <a class="nav-link"
@@ -58,6 +58,24 @@
   <script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/dist/justgage.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
   <script>
+    var temperatureGauge = new JustGage({
+      id: "temperatureGauge",
+      value: 0,
+      min: -10,
+      max: 50,
+      title: "Temperature (°C)",
+      label: "Temperature"
+    });
+
+    var humidityGauge = new JustGage({
+      id: "humidityGauge",
+      value: 0,
+      min: 0,
+      max: 100,
+      title: "Humidity (%)",
+      label: "Humidity"
+    });
+
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/test');
 
     socket.on('connect', function () {
@@ -65,8 +83,8 @@
     });
 
     socket.on('sensor_data', function (sensorData) {
-      updateGauge('temperatureGauge', sensorData.temperature, 'Temperature (°C)', -10, 50);
-      updateGauge('humidityGauge', sensorData.humidity, 'Humidity (%)', 0, 100);
+      temperatureGauge.refresh(sensorData.temperature);
+      humidityGauge.refresh(sensorData.humidity);
     });
 
     socket.on('disconnect', function () {
@@ -80,22 +98,6 @@
     $('#stopButton').click(function () {
       socket.emit('stop_sensor');
     });
-
-    function updateGauge (gaugeId, value, label, min, max) {
-      var gaugeDiv = document.getElementById(gaugeId);
-
-      var gauge = new JustGage({
-        id: gaugeDiv,
-        value: value,
-        min: min,
-        max: max,
-        title: label,
-        label: label,
-        gaugeWidthScale: 0.6,
-        counter: true,
-        relativeGaugeSize: true
-      });
-    }
   </script>
 </body>
 
