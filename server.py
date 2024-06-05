@@ -14,7 +14,7 @@ thread_lock = Lock()
 def background_thread():
     # Define DHT sensor type and pin
     sensor = Adafruit_DHT.DHT11
-    pin = 4
+    pin = 21  # Adjust pin number according to your setup
 
     while True:
         humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
@@ -26,6 +26,10 @@ def background_thread():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/numeric')
+def numeric():
+    return render_template('numeric.html')
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
