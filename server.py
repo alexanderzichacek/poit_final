@@ -85,21 +85,14 @@ def get_data():
 
 def save_to_csv(data):
     current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
-    index = 1
     filename = f'sensor_data_{current_datetime}.csv'
-
-    # Check if the file already exists
-    while os.path.exists(filename):
-        # If it does, increment index and try a new filename
-        filename = f'sensor_data_{current_datetime}_{index}.csv'
-        index += 1
 
     with open(filename, 'a', newline='') as csvfile:
         fieldnames = ['time', 'temperature', 'humidity']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         
         # Write headers if the file is empty
-        if os.stat(filename).st_size == 0:
+        if csvfile.tell() == 0:
             writer.writeheader()
         
         # Write the data to the CSV file
