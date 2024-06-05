@@ -17,9 +17,9 @@ sensor_thread = None
 
 # Define MySQL connection parameters
 myhost = 'localhost'
-myuser = 'root'
+myuser = 'zichacek'
 mydb = 'zadanie'
-mypasswd = ''
+mypasswd = 'password'
 
 def background_thread():
     global sensor_enabled
