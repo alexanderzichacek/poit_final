@@ -31,6 +31,10 @@ def index():
 def numeric():
     return render_template('numeric.html')
 
+@app.route('/graph')
+def graph():
+    return render_template('graph.html')
+
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread
